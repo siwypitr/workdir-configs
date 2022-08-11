@@ -46,6 +46,8 @@ zstyle ':completion:*' use-compctl false
 zstyle ':completion:*' verbose true
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
+
+
 # History configurations
 HISTFILE=~/.zsh_history
 HISTSIZE=1000
@@ -90,19 +92,35 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+# git display
+git_prompt() {
+	autoload -Uz vcs_info
+	precmd_vcs_info() { vcs_info }
+	precmd_functions+=( precmd_vcs_info )
+	setopt prompt_subst
+	#RPROMPT='${vcs_info_msg_0_}'
+	zstyle ':vcs_info:*' check-for-changes true
+	zstyle ':vcs_info:*' unstagedstr ' *'
+	zstyle ':vcs_info:*' stagedstr ' +'
+	zstyle ':vcs_info:git:*' formats       '%F{green}(%F{reset}%s/%b%u%c%F{green})'
+	zstyle ':vcs_info:git:*' actionformats '%F{green}(%F{reset}%s/%b|%a%u%c%F{green})'
+}
+
 configure_prompt() {
-    prompt_symbol=㉿
+    #prompt_symbol=㉿
+    prompt_symbol=@
     # Skull emoji for root terminal
     #[ "$EUID" -eq 0 ] && prompt_symbol=💀
+    git_prompt
     case "$PROMPT_ALTERNATIVE" in
         twoline)
-            PROMPT=$'%F{%(#.blue.green)}┌──${debian_chroot:+($debian_chroot)─}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))─}(%B%F{%(#.red.blue)}%n'$prompt_symbol$'%m%b%F{%(#.blue.green)})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%F{%(#.blue.green)}]\n└─%B%(#.%F{red}#.%F{blue}$)%b%F{reset} '
+            PROMPT=$'%F{%(#.blue.green)}┌──${debian_chroot:+($debian_chroot)─}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))─}(%B%F{%(#.red.blue)}%n'$prompt_symbol$'%m%b%F{%(#.blue.green)})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%F{%(#.blue.green)}]%b%F{reset}${vcs_info_msg_0_}%b%F{%(#.blue.green)}\n└─%B%(#.%F{red}#.%F{blue}$)%b%F{reset} '
             # Right-side prompt with exit codes and background processes
             #RPROMPT=$'%(?.. %? %F{red}%B⨯%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.)'
             ;;
         oneline)
             PROMPT=$'${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))}%B%F{%(#.red.blue)}%n@%m%b%F{reset}:%B%F{%(#.blue.green)}%~%b%F{reset}%(#.#.$) '
-            RPROMPT=
+            #RPROMPT=
             ;;
         backtrack)
             PROMPT=$'${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))}%B%F{red}%n@%m%b%F{reset}:%B%F{blue}%~%b%F{reset}%(#.#.$) '
